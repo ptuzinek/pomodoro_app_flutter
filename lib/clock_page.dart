@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'CustomWheelScrollView.dart';
 import 'constants.dart';
 
 class ClockPage extends StatefulWidget {
@@ -8,28 +11,45 @@ class ClockPage extends StatefulWidget {
 }
 
 class _ClockPageState extends State<ClockPage> {
-  ScrollController _controller;
+  FixedExtentScrollController _controller;
   int countdown = 25;
+  int selectedNumber = 25;
+  int seconds = 60;
+  Timer timer;
+  int minutes = 25;
+  bool isPaused = true;
+  ScrollPhysics physics = FixedExtentScrollPhysics();
 
   @override
   void initState() {
     super.initState();
-    _controller = ScrollController(
-      initialScrollOffset: 538.56,
+    _controller = FixedExtentScrollController(
+      initialItem: 24,
     );
-    _controller.addListener(() {
-      double scrollValue = _controller.offset;
-      double minuteValue = (scrollValue / 20);
-      //debugPrint('MinuteValue: $minuteValue');
-      //
-      double clockValue = 0;
-      clockValue = (minuteValue + 1) % 68;
-      clockValue -= 3;
 
-      setState(() {
-        countdown = clockValue.round();
-      });
+    _controller.addListener(() {
+      // seconds = _controller.offset.round().abs() + 40;
+      // seconds = (seconds * 1.5).round();
+      // setState(() {
+      //   seconds = (seconds) % 60;
+      // });
+      //
+      // print(seconds);
     });
+
+    // _controller.addListener(() {
+    //   double scrollValue = _controller.offset;
+    //   double minuteValue = (scrollValue / 20);
+    //   //debugPrint('MinuteValue: $minuteValue');
+    //   //
+    //   double clockValue = 0;
+    //   clockValue = (minuteValue + 1) % 68;
+    //   clockValue -= 3;
+    //
+    //   setState(() {
+    //     countdown = clockValue.round();
+    //   });
+    // });
   }
 
   @override
@@ -49,33 +69,81 @@ class _ClockPageState extends State<ClockPage> {
               height: 30.0,
             ),
             Text(
-              countdown.toString(),
-              style: TextStyle(fontSize: 30.0),
-            ),
-            SizedBox(
-              height: 30.0,
-            ),
-            Container(
-              width: double.infinity,
-              height: 300.0,
-              child: ListView.builder(
-                controller: _controller,
-                scrollDirection: Axis.horizontal,
-                itemCount: Constants.minutes.length,
-                itemBuilder: (context, int index) {
-                  return MyContainer(
-                    minutes: Constants.minutes,
-                    index: (index + 1) % Constants.minutes.length,
-                    minutesLength: Constants.minutes.length,
-                  );
-                },
+              displayTime(),
+              style: TextStyle(
+                fontSize: 40.0,
               ),
             ),
             GestureDetector(
               onTap: () {
-                _controller.animateTo(47.622,
-                    duration: Duration(seconds: countdown),
-                    curve: Curves.easeIn);
+                if (timer != null) {
+                  timer.cancel();
+                }
+                if (isPaused == false) {
+                  isPaused = true;
+                } else {
+                  physics = AlwaysScrollableScrollPhysics();
+                  startTimer(seconds, minutes);
+                  turnTheClock();
+                  isPaused = false;
+                }
+              },
+              child: Container(
+                height: 200.0,
+                width: 600.0,
+                child: NotificationListener<UserScrollNotification>(
+                  onNotification: (notification) {
+                    physics = FixedExtentScrollPhysics();
+                    if (timer != null) {
+                      timer.cancel();
+                      minutes = selectedNumber;
+                      seconds = 0;
+                    }
+                    return true;
+                  },
+                  child: ListWheelScrollViewX(
+                    scrollDirection: Axis.horizontal,
+                    physics: physics,
+                    controller: _controller,
+                    itemExtent: 40,
+                    onSelectedItemChanged: (value) {
+                      setState(() {
+                        selectedNumber = (value + 1) % 60;
+                        minutes = (value + 1) % 60;
+                        //print(value);
+                      });
+                    },
+                    builder: (context, index) {
+                      index = (index + 1) % 60;
+                      return Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            height: index % 5 == 0 ? 90.0 : 30,
+                            width: 3.0,
+                            color: Colors.white,
+                          ),
+                          Text(
+                            index % 5 == 0 ? index.abs().toString() : '',
+                            style: TextStyle(
+                              fontSize: 30.0,
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(
+              height: 25,
+            ),
+            GestureDetector(
+              onTap: () {
+                physics = AlwaysScrollableScrollPhysics();
+                turnTheClock();
+                startTimer(seconds, minutes);
               },
               child: Text(
                 'START',
@@ -89,71 +157,44 @@ class _ClockPageState extends State<ClockPage> {
       ),
     );
   }
-}
 
-class MyContainer extends StatelessWidget {
-  const MyContainer(
-      {Key key,
-      @required this.minutes,
-      @required this.index,
-      this.minutesLength})
-      : super(key: key);
+  String displayTime() {
+    //
+    if (seconds == 60) {
+      return '$minutes:00';
+    } else
+      return '$minutes:$seconds';
+  }
 
-  final List<String> minutes;
-  final int index;
-  final minutesLength;
+  //
+  void turnTheClock() {
+    _controller.animateToItem(-1,
+        duration: Duration(
+          minutes: selectedNumber,
+        ),
+        curve: Curves.linear);
+  }
 
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Container(
-            height: 50.0,
-            width: 5.0,
-            color: Colors.teal,
-          ),
-          SizedBox(
-            width: 15,
-          ),
-          Container(
-            height: 50.0,
-            width: 5.0,
-            color: Colors.teal,
-          ),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                height: 150.0,
-                width: 10.0,
-                color: Colors.teal,
-              ),
-              Text(
-                minutes[index.abs()].toString(),
-                style: TextStyle(
-                  fontSize: 30.0,
-                ),
-              ),
-            ],
-          ),
-          Container(
-            height: 50.0,
-            width: 5.0,
-            color: Colors.teal,
-          ),
-          SizedBox(
-            width: 15,
-          ),
-          Container(
-            height: 50.0,
-            width: 5.0,
-            color: Colors.teal,
-          ),
-        ],
-      ),
-    );
+  void startTimer(int secondCount, int minutesCount) {
+    minutes = minutesCount;
+    seconds = secondCount;
+
+    if (timer != null) {
+      timer.cancel();
+    }
+
+    timer = Timer.periodic(Duration(seconds: 1), (timer) {
+      setState(() {
+        if (seconds == 60 || seconds == 0) {
+          minutes--;
+        }
+        if (minutes > 0) {
+          seconds--;
+          seconds = (seconds) % 60;
+        } else {
+          timer.cancel();
+        }
+      });
+    });
   }
 }
