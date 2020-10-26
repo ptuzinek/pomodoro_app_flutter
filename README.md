@@ -1,4 +1,6 @@
 # Pomodoro Timer :clock9:
+This is a timer app that resembles real pomodoro timer by turning countdown setter. It is a great looking app with UI and UX that brings joy and satisfaction while using. User can set the time by turning the clock and start countdown. App shows the progress of countdown two-ways - by turning the clock corresponding to the countdown and by Circular Progress Indicator. There is also an animation of loading this indicator when timer hits zero or when the user stars srolling when the countdown is on.
+
 ![alt-text](https://github.com/ptuzinek/pomodoro_app_flutter/blob/master/PmodoroGif.gif)
 
 # Functionalities :gear: 
