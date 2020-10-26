@@ -1,2 +1,2 @@
 # pomodoro_app_flutter
-![alt-text](https://drive.google.com/file/d/1r4R4CGik5jA7ye_1LrXLve93-SJA51cV/view?usp=sharing)
+![alt-text](https://www.dropbox.com/s/rjjlrgngkqpdmce/Pomodoro2.gif?dl=0)
