@@ -1,2 +1,2 @@
 # pomodoro_app_flutter
-![alt-text]()
+![alt-text](https://github.com/ptuzinek/pomodoro_app_flutter/blob/master/pomodoro.gif)
